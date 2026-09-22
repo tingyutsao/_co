@@ -13,5 +13,7 @@ CHIP Or16 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    Or(a=a[0], b=b[0], out=out[0]);
+// ...寫滿 [1] 到 [14]
+Or(a=a[15], b=b[15], out=out[15]);
 }

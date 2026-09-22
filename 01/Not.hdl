@@ -13,6 +13,6 @@ CHIP Not {
     OUT out;
 
     PARTS:
-    // Put your code here:
+    // 將 Nand 的兩個輸入端綁定在一起，就會反轉訊號
     Nand(a=in, b=in, out=out);
 }

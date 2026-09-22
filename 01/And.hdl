@@ -14,6 +14,7 @@ CHIP And {
     OUT out;
 
     PARTS:
-    Nand(a=a, b=b, out=AnandB);
-    Nand(a=AnandB, b=AnandB, out=out);
+    // Nand 再經過一次 Not 反轉，就會變成 And
+    Nand(a=a, b=b, out=nandOut);
+    Not(in=nandOut, out=out);
 }

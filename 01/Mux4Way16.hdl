@@ -16,5 +16,9 @@ CHIP Mux4Way16 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    // 利用 sel[0] 先在 (a, b) 及 (c, d) 之間做兩組初選
+Mux16(a=a, b=b, sel=sel[0], out=muxAB);
+Mux16(a=c, b=d, sel=sel[0], out=muxCD);
+// 利用 sel[1] 做最後決選
+Mux16(a=muxAB, b=muxCD, sel=sel[1], out=out);
 }

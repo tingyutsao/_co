@@ -16,5 +16,9 @@ CHIP DMux4Way {
     OUT a, b, c, d;
 
     PARTS:
-    // Put your code here:
+    // 利用最高位元 sel[1] 先分為兩路
+DMux(in=in, sel=sel[1], a=outAB, b=outCD);
+// 利用最低位元 sel[0] 決定最終四路
+DMux(in=outAB, sel=sel[0], a=a, b=b);
+DMux(in=outCD, sel=sel[0], a=c, b=d);
 }

@@ -16,5 +16,9 @@ CHIP DMux8Way {
     OUT a, b, c, d, e, f, g, h;
 
     PARTS:
-    // Put your code here:
+    // 利用最高位元 sel[2] 先分為兩路
+DMux(in=in, sel=sel[2], a=outABCD, b=outEFGH);
+// 直接呼叫剛剛寫好的 DMux4Way 決定最終八路
+DMux4Way(in=outABCD, sel=sel[0..1], a=a, b=b, c=c, d=d);
+DMux4Way(in=outEFGH, sel=sel[0..1], a=e, b=f, c=g, d=h);
 }
