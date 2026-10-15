@@ -27,5 +27,18 @@ CHIP Memory {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+// 透過 address[14] 決定要將 load 訊號送給 RAM 還是 I/O (Screen/KBD)
+    DMux(in=load, sel=address[14], a=loadRAM, b=loadIO);
+    
+    // 若是 I/O，再透過 address[13] 決定是 Screen 還是 Keyboard (Keyboard唯讀無load)
+    DMux(in=loadIO, sel=address[13], a=loadScreen, b=loadKbd);
+
+    // 連接三個內建記憶體元件
+    RAM16K(in=in, load=loadRAM, address=address[0..13], out=outRAM);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=outScreen);
+    Keyboard(out=outKbd);
+
+    // 讀取邏輯：先選出 I/O 裝置的輸出，再與 RAM 的輸出做最終選擇
+    Mux16(a=outScreen, b=outKbd, sel=address[13], out=outIO);
+    Mux16(a=outRAM, b=outIO, sel=address[14], out=out);
 }

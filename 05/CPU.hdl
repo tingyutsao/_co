@@ -39,5 +39,53 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+// 判斷是 A-instruction (0開頭) 還是 C-instruction (1開頭)
+    Not(in=instruction[15], out=isA);
+    Not(in=isA, out=isC);
+
+    // ======== A-Register 邏輯 ========
+    // 若為 C-instruction 且 instruction[5] (dest A) 為真，ALU 輸出才進入 A-Register
+    And(a=isC, b=instruction[5], out=ALUtoA);
+    Mux16(a=instruction, b=ALUout, sel=ALUtoA, out=inA);
+    
+    // 若是 A-instruction 或是 (C-instruction 且 dest A=1)，則 Load A
+    Or(a=isA, b=instruction[5], out=loadA);
+    ARegister(in=inA, load=loadA, out=outA, out[0..14]=addressM);
+
+    // ======== D-Register 邏輯 ========
+    // 只有在 C-instruction 且 instruction[4] (dest D) 為真時，才 Load D
+    And(a=isC, b=instruction[4], out=loadD);
+    DRegister(in=ALUout, load=loadD, out=outD);
+
+    // ======== ALU 輸入選擇 ========
+    // 根據 instruction[12] (a bit) 決定 ALU 的 y 輸入是 A-Register 還是 inM
+    Mux16(a=outA, b=inM, sel=instruction[12], out=yALU);
+
+    // ======== ALU 運算 ========
+    ALU(x=outD, y=yALU, 
+        zx=instruction[11], nx=instruction[10], zy=instruction[9], 
+        ny=instruction[8], f=instruction[7], no=instruction[6], 
+        out=ALUout, out=outM, zr=zr, ng=ng);
+
+    // ======== writeM 邏輯 ========
+    // C-instruction 且 instruction[3] (dest M) 為真時，允許寫入 M
+    And(a=isC, b=instruction[3], out=writeM);
+
+    // ======== PC 邏輯 ========
+    // j1(bit 2) <0, j2(bit 1) =0, j3(bit 0) >0
+    Or(a=zr, b=ng, out=zrOrNg);
+    Not(in=zrOrNg, out=pos); // 是否 > 0
+    
+    And(a=instruction[2], b=ng, out=jLT);  // 檢查是否符合 <0
+    And(a=instruction[1], b=zr, out=jEQ);  // 檢查是否符合 =0
+    And(a=instruction[0], b=pos, out=jGT); // 檢查是否符合 >0
+    
+    Or(a=jLT, b=jEQ, out=jLE);
+    Or(a=jLE, b=jGT, out=jumpCond);        // 只要滿足任何一個 Jump 條件
+    
+    // 必須是 C-instruction 才能執行 Jump
+    And(a=isC, b=jumpCond, out=loadPC);
+    Not(in=loadPC, out=incPC);             // 若不跳躍，則 PC+1
+    
+    PC(in=outA, load=loadPC, inc=incPC, reset=reset, out[0..14]=pc);
 }
